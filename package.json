@@ -1,0 +1,18 @@
+{
+  "name": "bff-server",
+  "version": "1.0.0",
+  "description": "Backend for Frontend server for multi-step form",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node project-root/server.js",
+    "dev": "node --watch project-root/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.16.3",
+    "uuid": "^9.0.1"
+  }
+}
