@@ -191,3 +191,70 @@ export const deleteSessionController = async (req, res) => {
     res.status(500).json({ error: "Failed to delete session" });
   }
 };
+
+// Add this new controller function
+export const patchSessionController = async (req, res) => {
+  const { sessionId } = req.params;
+  const { stepNumber, stepData } = req.body;
+
+  try {
+    // Check if session exists
+    const session = await getSession(sessionId);
+    if (!session) return res.status(404).json({ error: "Session not found" });
+
+    // Validate step number
+    const step = parseInt(stepNumber);
+    if (isNaN(step) || step < 1 || step > 4) {
+      return res.status(400).json({
+        error: "Invalid step number. Must be between 1 and 4.",
+      });
+    }
+
+    // Update the specific step
+    const updatedSession = await updateSessionStep(sessionId, step, stepData);
+
+    res.json({
+      success: true,
+      message: `Step ${step} updated successfully`,
+      session: {
+        id: session.id,
+        completedSteps: Object.keys(updatedSession.steps || {}),
+        lastUpdated: updatedSession.last_updated,
+      },
+    });
+  } catch (error) {
+    console.error("Error patching session:", error);
+    res.status(500).json({ error: "Failed to update session" });
+  }
+};
+
+// Add this function to get session progress
+export const getSessionProgressController = async (req, res) => {
+  const { sessionId } = req.params;
+
+  try {
+    const session = await getSession(sessionId);
+    if (!session) return res.status(404).json({ error: "Session not found" });
+
+    // Determine the last completed step and next step
+    const completedSteps = Object.keys(session.steps || {}).map(Number);
+    const lastCompletedStep =
+      completedSteps.length > 0 ? Math.max(...completedSteps) : 0;
+
+    const nextStep = lastCompletedStep < 4 ? lastCompletedStep + 1 : null;
+
+    res.json({
+      sessionId: session.id,
+      completedSteps: completedSteps,
+      lastCompletedStep: lastCompletedStep,
+      nextStep: nextStep,
+      isComplete: completedSteps.length === 4,
+      createdAt: session.created_at,
+      lastUpdated: session.last_updated,
+      status: session.status || "in_progress",
+    });
+  } catch (error) {
+    console.error("Error getting session progress:", error);
+    res.status(500).json({ error: "Failed to get session progress" });
+  }
+};

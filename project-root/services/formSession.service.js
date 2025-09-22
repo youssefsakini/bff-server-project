@@ -48,46 +48,46 @@ export async function getSession(sessionId) {
   }
 }
 
-export async function updateSessionStep(sessionId, stepNumber, stepData) {
-  const client = await pool.connect();
+// export async function updateSessionStep(sessionId, stepNumber, stepData) {
+//   const client = await pool.connect();
 
-  try {
-    await client.query("BEGIN");
+//   try {
+//     await client.query("BEGIN");
 
-    // Update or insert the step
-    const stepQuery = `
-      INSERT INTO bff_steps (session_id, step_number, step_data, completed_at)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (session_id, step_number) 
-      DO UPDATE SET step_data = $3, completed_at = $4
-      RETURNING *
-    `;
+//     // Update or insert the step
+//     const stepQuery = `
+//       INSERT INTO bff_steps (session_id, step_number, step_data, completed_at)
+//       VALUES ($1, $2, $3, $4)
+//       ON CONFLICT (session_id, step_number)
+//       DO UPDATE SET step_data = $3, completed_at = $4
+//       RETURNING *
+//     `;
 
-    const stepValues = [sessionId, parseInt(stepNumber), stepData, new Date()];
-    await client.query(stepQuery, stepValues);
+//     const stepValues = [sessionId, parseInt(stepNumber), stepData, new Date()];
+//     await client.query(stepQuery, stepValues);
 
-    // Update session last_updated
-    const sessionQuery = `
-      UPDATE bff_sessions 
-      SET last_updated = $1
-      WHERE id = $2
-      RETURNING *
-    `;
+//     // Update session last_updated
+//     const sessionQuery = `
+//       UPDATE bff_sessions
+//       SET last_updated = $1
+//       WHERE id = $2
+//       RETURNING *
+//     `;
 
-    await client.query(sessionQuery, [new Date(), sessionId]);
+//     await client.query(sessionQuery, [new Date(), sessionId]);
 
-    await client.query("COMMIT");
+//     await client.query("COMMIT");
 
-    // Return the updated session
-    return await getSession(sessionId);
-  } catch (error) {
-    await client.query("ROLLBACK");
-    console.error("Error updating session step:", error);
-    throw error;
-  } finally {
-    client.release();
-  }
-}
+//     // Return the updated session
+//     return await getSession(sessionId);
+//   } catch (error) {
+//     await client.query("ROLLBACK");
+//     console.error("Error updating session step:", error);
+//     throw error;
+//   } finally {
+//     client.release();
+//   }
+// }
 
 export async function deleteSession(sessionId) {
   const query = "DELETE FROM bff_sessions WHERE id = $1";
@@ -187,5 +187,107 @@ export async function markSessionAsSubmitted(sessionId) {
   } catch (error) {
     console.error("Error marking session as submitted:", error);
     throw error;
+  }
+}
+// Add this function to check if a step can be patched
+export async function canPatchStep(sessionId, stepNumber) {
+  try {
+    // Get all completed steps
+    const stepsQuery = `
+      SELECT step_number FROM bff_steps 
+      WHERE session_id = $1 
+      ORDER BY step_number
+    `;
+
+    const result = await pool.query(stepsQuery, [sessionId]);
+    const completedSteps = result.rows.map((row) => row.step_number);
+
+    // Can patch current step or next logical step
+    const maxCompletedStep =
+      completedSteps.length > 0 ? Math.max(...completedSteps) : 0;
+
+    return stepNumber <= maxCompletedStep + 1;
+  } catch (error) {
+    console.error("Error checking patch eligibility:", error);
+    throw error;
+  }
+}
+
+// Update the updateSessionStep function to handle patching
+export async function updateSessionStep(
+  sessionId,
+  stepNumber,
+  stepData,
+  isPatch = false
+) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    if (isPatch) {
+      // For patching, we need to merge existing data with new data
+      const existingStepQuery = `
+        SELECT step_data FROM bff_steps 
+        WHERE session_id = $1 AND step_number = $2
+      `;
+
+      const existingResult = await client.query(existingStepQuery, [
+        sessionId,
+        stepNumber,
+      ]);
+
+      let mergedData = stepData;
+      if (existingResult.rows.length > 0) {
+        // Merge existing data with new data (new data overwrites existing)
+        mergedData = {
+          ...existingResult.rows[0].step_data,
+          ...stepData,
+        };
+      }
+
+      const stepQuery = `
+        INSERT INTO bff_steps (session_id, step_number, step_data, completed_at)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (session_id, step_number) 
+        DO UPDATE SET step_data = $3, completed_at = $4
+        RETURNING *
+      `;
+
+      const stepValues = [sessionId, stepNumber, mergedData, new Date()];
+      await client.query(stepQuery, stepValues);
+    } else {
+      // Original logic for new step submissions
+      const stepQuery = `
+        INSERT INTO bff_steps (session_id, step_number, step_data, completed_at)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (session_id, step_number) 
+        DO UPDATE SET step_data = $3, completed_at = $4
+        RETURNING *
+      `;
+
+      const stepValues = [sessionId, stepNumber, stepData, new Date()];
+      await client.query(stepQuery, stepValues);
+    }
+
+    // Update session last_updated
+    const sessionQuery = `
+      UPDATE bff_sessions 
+      SET last_updated = $1
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    await client.query(sessionQuery, [new Date(), sessionId]);
+    await client.query("COMMIT");
+
+    // Return the updated session
+    return await getSession(sessionId);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error updating session step:", error);
+    throw error;
+  } finally {
+    client.release();
   }
 }
