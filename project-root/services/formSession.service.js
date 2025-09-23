@@ -48,47 +48,6 @@ export async function getSession(sessionId) {
   }
 }
 
-// export async function updateSessionStep(sessionId, stepNumber, stepData) {
-//   const client = await pool.connect();
-
-//   try {
-//     await client.query("BEGIN");
-
-//     // Update or insert the step
-//     const stepQuery = `
-//       INSERT INTO bff_steps (session_id, step_number, step_data, completed_at)
-//       VALUES ($1, $2, $3, $4)
-//       ON CONFLICT (session_id, step_number)
-//       DO UPDATE SET step_data = $3, completed_at = $4
-//       RETURNING *
-//     `;
-
-//     const stepValues = [sessionId, parseInt(stepNumber), stepData, new Date()];
-//     await client.query(stepQuery, stepValues);
-
-//     // Update session last_updated
-//     const sessionQuery = `
-//       UPDATE bff_sessions
-//       SET last_updated = $1
-//       WHERE id = $2
-//       RETURNING *
-//     `;
-
-//     await client.query(sessionQuery, [new Date(), sessionId]);
-
-//     await client.query("COMMIT");
-
-//     // Return the updated session
-//     return await getSession(sessionId);
-//   } catch (error) {
-//     await client.query("ROLLBACK");
-//     console.error("Error updating session step:", error);
-//     throw error;
-//   } finally {
-//     client.release();
-//   }
-// }
-
 export async function deleteSession(sessionId) {
   const query = "DELETE FROM bff_sessions WHERE id = $1";
 
