@@ -2,9 +2,15 @@ export const PORT = process.env.PORT || 4000;
 export const FINAL_SERVER_URL =
   process.env.FINAL_SERVER_URL || "http://localhost:3002";
 
-// Database configuration
-export const DB_HOST = process.env.DB_HOST || "localhost";
-export const DB_PORT = process.env.DB_PORT || 5432;
-export const DB_NAME = process.env.DB_NAME || "bff_db";
-export const DB_USER = process.env.DB_USER || "postgres";
-export const DB_PASSWORD = process.env.DB_PASSWORD || "password";
+// Redis configuration
+export const REDIS_HOST = process.env.REDIS_HOST || "localhost";
+export const REDIS_PORT = process.env.REDIS_PORT || 6379;
+export const REDIS_PASSWORD = process.env.REDIS_PASSWORD || "";
+export const REDIS_DB = process.env.REDIS_DB || 0;
+
+// Database postgresql configuration
+// export const DB_HOST = process.env.DB_HOST || "localhost";
+// export const DB_PORT = process.env.DB_PORT || 5432;
+// export const DB_NAME = process.env.DB_NAME || "bff_db";
+// export const DB_USER = process.env.DB_USER || "postgres";
+// export const DB_PASSWORD = process.env.DB_PASSWORD || "password";
