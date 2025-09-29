@@ -258,3 +258,88 @@ export const getSessionProgressController = async (req, res) => {
     res.status(500).json({ error: "Failed to get session progress" });
   }
 };
+
+export const getProductFamiliesController = async (req, res) => {
+  try {
+    const { code } = req.query;
+
+    const response = await fetch(
+      "http://localhost:5004/api/v1/product-families"
+    );
+
+    if (!response.ok) {
+      throw new Error(`External API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Filter by code if query param is provided
+    let items = data.items || [];
+    if (code) {
+      items = items.filter(
+        (item) => item.code.toLowerCase() === code.toLowerCase()
+      );
+    }
+
+    res.json({ items });
+  } catch (error) {
+    console.error("Error fetching product families:", error);
+    res.status(500).json({ error: "Failed to fetch product families" });
+  }
+};
+
+export const getProductsByFamilyIdController = async (req, res) => {
+  try {
+    const { family_id } = req.query;
+
+    if (!family_id) {
+      return res
+        .status(400)
+        .json({ error: "Missing family_id query parameter" });
+    }
+
+    const response = await fetch(
+      `http://localhost:5004/api/v1/products?family_id=${family_id}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Backend API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    res.json({
+      items: data.items || [],
+    });
+  } catch (error) {
+    console.error("Error fetching products by family:", error);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+};
+
+export const getProductsByProductId = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ error: "Missing productId path parameter" });
+    }
+
+    const response = await fetch(
+      `http://localhost:5004/api/v1/products/${productId}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Backend API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching product by ID:", error);
+    res.status(500).json({ error: "Failed to fetch product" });
+  }
+};
