@@ -343,3 +343,16 @@ export const getProductsByProductId = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch product" });
   }
 };
+
+export const aggregateDataController = async (req, res) => {
+  try {
+    const [posts, users] = await Promise.all([
+      fetch("https://jsonplaceholder.typicode.com/posts").then((r) => r.json()),
+      fetch("https://jsonplaceholder.typicode.com/users").then((r) => r.json()),
+    ]);
+
+    res.json({ posts, users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
