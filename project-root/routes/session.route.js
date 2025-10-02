@@ -14,7 +14,7 @@ import {
   getProductFamiliesController,
   getProductsByFamilyIdController,
   getProductsByProductId,
-  aggregateDataController,
+  getFamilyDetails,
 } from "../controllers/session.controller.js";
 
 const router = Router();
@@ -23,10 +23,10 @@ const router = Router();
 router.post("/create", createSessionController);
 router.get("/product-families", getProductFamiliesController);
 router.get("/products", getProductsByFamilyIdController);
-router.get("/aggregate", aggregateDataController);
 router.get("/", getAllSessionsController);
 
 // Step-specific routes (still specific)
+router.get("/product-families/:familyId", getFamilyDetails);
 router.post(
   "/:sessionId/step/:stepNumber",
   validateStepData,
