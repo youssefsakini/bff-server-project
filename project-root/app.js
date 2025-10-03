@@ -2,16 +2,16 @@ import express from "express";
 import cors from "cors";
 import sessionRoutes from "./routes/session.route.js";
 import productRoutes from "./routes/product.route.js";
+import repositoryRoutes from "./routes/repository.route.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import { ApiError } from "./utils/ApiError.js";
 
 const app = express();
 app.use(errorHandler);
-
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:4200", // Angular dev server
+    origin: "http://localhost:4200",
     credentials: true,
   })
 );
@@ -20,6 +20,7 @@ app.use(express.json());
 // Routes
 app.use("/api/session", sessionRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/repository", repositoryRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
