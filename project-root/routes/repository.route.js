@@ -14,10 +14,10 @@ router.get("/", getStaticRepositoryController);
 
 // Countries & Cities
 router.get("/countries", getCountriesController);
-router.get("/countries/:country/cities", getCitiesByCountryController);
+router.get("/countries/:countryIso/cities", getCitiesByCountryController);
 
 // Cars
-router.get("/cars/brands", getCarBrandsController);
-router.get("/cars/:brand/models", getCarModelsController);
+router.get("/car-brands", getCarBrandsController);
+router.get("/car-brands/:brandId/models", getCarModelsController);
 
 export default router;
