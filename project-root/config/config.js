@@ -1,7 +1,8 @@
 export const PORT = process.env.PORT || 4000;
 export const FINAL_SERVER_URL =
   process.env.FINAL_SERVER_URL || "http://localhost:3002";
-
+export const BACKEND_SERVER_URL =
+  process.env.BACKEND_SERVER_URL || "http://localhost:5004/api/v1";
 // Redis configuration
 export const REDIS_HOST = process.env.REDIS_HOST || "localhost";
 export const REDIS_PORT = process.env.REDIS_PORT || 6379;
